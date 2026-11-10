@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="description" content="Crypto IDX screenshot candle analysis and an English chart guide for demo practice.">
+  <title>IDX Lens · Screenshot Assistant</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="IDX Lens home"><span class="brand-mark" aria-hidden="true">▥</span><span>IDX<span class="brand-light"> Lens</span></span></a>
+    <span class="practice"><span></span> DEMO PRACTICE</span>
+  </header>
+  <main>
+    <section class="intro">
+      <p class="eyebrow">CRYPTO IDX · SCREENSHOT ASSISTANT</p>
+      <h1>Show your chart.<br><span>Explore the movement.</span></h1>
+      <p class="intro-copy">Upload a screenshot to review visible candle direction, patterns, and expiry timing.</p>
+    </section>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div class="workspace">
+      <section class="panel upload-panel" aria-labelledby="upload-title">
+        <div class="panel-heading"><h2 id="upload-title">Your screenshot</h2><button class="text-button" id="try-demo" type="button">Try demo ↗</button></div>
+        <label class="dropzone" id="dropzone" for="file-input">
+          <span class="upload-icon" aria-hidden="true">↑</span><strong>Choose a screenshot</strong>
+          <span>Upload from Photos or Files</span><small>PNG, JPG, WEBP · Up to 16 MB</small>
+          <input id="file-input" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload chart screenshot">
+        </label>
+        <div id="image-area" hidden>
+          <div class="file-info"><span id="file-name"></span><button id="remove-image" type="button" class="text-button">Clear</button></div>
+          <canvas id="preview" aria-label="Uploaded screenshot with detected candles and chart boundary"></canvas>
+          <div class="preview-key"><span><i class="key-crop"></i> Chart area</span><span><i class="key-candle"></i> Detected candles</span></div>
+          <details id="crop-details">
+            <summary>Adjust chart area</summary>
+            <p class="small muted">Select the candle area. Keep trade buttons, balance, and phone icons outside the selection.</p>
+            <div class="crop-controls">
+              <label>Top <output id="top-value">20%</output><input id="crop-top" type="range" min="0" max="90" step="1" value="20"></label>
+              <label>Bottom <output id="bottom-value">66%</output><input id="crop-bottom" type="range" min="5" max="100" step="1" value="66"></label>
+              <label>Left <output id="left-value">0%</output><input id="crop-left" type="range" min="0" max="90" step="1" value="0"></label>
+              <label>Right <output id="right-value">67%</output><input id="crop-right" type="range" min="5" max="100" step="1" value="67"></label>
+            </div>
+            <button id="reset-crop" class="secondary-button" type="button">Reset chart area</button>
+          </details>
+        </div>
+        <div class="local-note"><span aria-hidden="true">◈</span> Images are analyzed locally in your browser.</div>
+      </section>
+      <div class="right-column">
+        <section class="panel result-panel" aria-labelledby="result-title">
+          <div class="panel-heading"><h2 id="result-title">Chart review</h2><span class="small muted" id="analysis-state">Ready for upload</span></div>
+          <div class="result-empty" id="result-empty"><div class="empty-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><p>Your candle review appears here.</p><span>Analysis starts as soon as you upload.</span></div>
+          <div id="result-content" hidden aria-live="polite">
+            <div id="demo-label" class="demo-label" hidden>DEMO IMAGE · Synthetic candles</div>
+            <div class="direction-row"><div><p class="eyebrow">Observed movement</p><div id="direction" class="direction wait">WAIT <span>→</span></div></div><div class="next-status"><span>Next candle</span><strong>UNVERIFIED</strong></div></div>
+            <p id="result-reason" class="result-reason"></p>
+            <div class="metrics"><div><span>Candles detected</span><strong id="candle-count">—</strong></div><div><span>Candles used</span><strong id="closed-count">—</strong></div><div><span>Detection</span><strong id="detection-label">—</strong></div></div>
+            <div id="candle-strip" class="candle-strip" aria-label="Detected candle sequence"></div>
+            <ul id="observations" class="observations"></ul>
+            <label class="check-row"><input type="checkbox" id="exclude-last" checked> Last candle is still forming</label>
+            <p class="boundary-note">This review uses rules applied to visible candle movement. Next-candle predictions and win probability remain unverified.</p>
+          </div>
+        </section>
+        <section class="panel timing-panel" aria-labelledby="timing-title">
+          <div class="panel-heading"><h2 id="timing-title">Timing & payout</h2><span class="small muted">Manual inputs</span></div>
+          <div class="field-grid">
+            <label>Candle timeframe<select id="timeframe"><option value="1m">1 minute</option><option value="3m">3 minutes</option><option value="5m">5 minutes</option></select></label>
+            <label>Payout %<input type="number" id="payout" min="1" max="100" value="84" inputmode="decimal"></label>
+            <label>Chart time in screenshot<input type="time" id="capture-time" step="1" aria-label="Chart time in screenshot"></label>
+            <label>Selected expiry<input type="time" id="expiry-time" step="1" aria-label="Selected expiry"></label>
+          </div>
+          <p id="timing-result" class="timing-result">Enter the screenshot's chart time and selected expiry to calculate the time remaining at capture.</p>
+          <div class="payout-row"><span>₹100 demo stake</span><span>Win <b id="win-profit">+₹84</b></span><span>Loss <b class="loss">−₹100</b></span></div>
+          <p id="breakeven" class="small muted"></p>
+        </section>
+      </div>
+    </div>
+    <section class="panel guide-panel" aria-labelledby="guide-title">
+      <div class="guide-header"><div><p class="eyebrow">Ask about your analysis</p><h2 id="guide-title">Chart guide</h2></div><span class="guide-type">Local rules</span></div>
+      <p class="small muted">This guide explains the screenshot results using local rules. Full ChatGPT AI chat requires a separate server connection.</p>
+      <div id="guide-messages" class="messages" role="log" aria-live="polite"><div class="guide-message"><span class="message-label">GUIDE</span><p>Upload a screenshot, then ask about direction, candles, expiry, or payout.</p></div></div>
+      <div class="question-chips"><button type="button" data-question="Why this result?">Why this result?</button><button type="button" data-question="How were candles detected?">How were candles detected?</button><button type="button" data-question="Expiry time?">Expiry time?</button><button type="button" data-question="Explain payout">Explain payout</button></div>
+      <form id="guide-form" class="chat-form"><label class="sr-only" for="guide-question">Question for the chart guide</label><input id="guide-question" placeholder="Ask about your analysis…" autocomplete="off" maxlength="600"><button id="send-question" type="submit" aria-label="Send question">↑</button></form>
+      <div class="handoff"><div><strong>Review with ChatGPT</strong><p>Share the analysis and attach your screenshot in the chat.</p></div><div class="handoff-actions"><button id="share-report" type="button" class="primary-button" disabled>Share / Copy analysis ↗</button><button id="download-report" type="button" class="secondary-button" disabled>Report ↓</button></div></div>
+      <p id="share-status" class="small muted" role="status"></p>
+      <a id="open-chatgpt" class="chatgpt-link" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" hidden>Open ChatGPT ↗</a>
+    </section>
+    <footer><span>IDX Lens · v1.1</span><span>Screenshot analysis · Demo practice</span></footer>
+  </main>
+  <script src="./analysis.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
