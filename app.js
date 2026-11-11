@@ -137,7 +137,7 @@
     element('demo-label').hidden = !state.demo;
     element('analysis-state').textContent = 'Image analysis complete';
     const direction = element('direction');
-    direction.className = 'direction ' + result.direction.toLowerCase();
+    direction.className = 'trend ' + result.direction.toLowerCase();
     direction.replaceChildren(document.createTextNode(result.direction + ' '));
     const arrow = document.createElement('span');
     arrow.textContent = { UP: '↗', DOWN: '↘', WAIT: '→' }[result.direction];
@@ -209,11 +209,11 @@
     }
     if (!state.analysis) return 'Upload a screenshot or select “Try demo” first. The guide will explain the results for that image.';
     const result = state.analysis;
+    if (/next|predict|forecast|correct|sure|100|శాతం|కచ్చిత|గెలు|accuracy|confidence|win/.test(text)) {
+      return `The next candle’s direction is unknown. The ${result.direction} recent trend describes the last 5 analyzed candles in this screenshot. Next-candle forecast accuracy remains unverified. A reliable win percentage requires recorded signals, entry and expiry prices, and many demo outcomes.`;
+    }
     if (/candle|కొవ్వొత్తి|చదివా|detect|crop/.test(text)) {
       return `Red and green pixel columns in the selected chart area identify possible candles. ${result.candles.length} candles were detected and ${result.closed.length} used. Check that the preview boxes match the actual candles. Adjusting the chart area recalculates the result. Price values, RSI, and MACD require separate data.`;
-    }
-    if (/next|correct|sure|100|శాతం|కచ్చిత|గెలు|accuracy|confidence|win/.test(text)) {
-      return `Observed movement in this image is ${result.direction}. The next candle and expiry outcome remain unknown. A reliable win percentage requires recorded signals, entry and expiry prices, and many demo outcomes.`;
     }
     if (/why|result|ఫలితం|ఎందుకు|wait|up|down|direction|వివర|చెప్పు/.test(text)) {
       return `${result.direction} · ${result.reason}\n${result.observations.join('\n')}`;
@@ -234,7 +234,7 @@
     if (!result) return '';
     const question = element('guide-question').value.trim();
     return [
-      'Crypto IDX screenshot review · IDX Lens v1.1',
+      'Crypto IDX screenshot review · IDX Lens v1.2',
       state.demo ? 'SOURCE: Synthetic demo image' : 'SOURCE: User screenshot · Binomo Crypto IDX label selected by user; platform and asset not verified automatically',
       'Created at: ' + new Date().toISOString() + ' (report generation time, not screenshot capture time)',
       'Image: ' + (state.file ? state.file.name : 'Synthetic demo'),
@@ -243,7 +243,8 @@
       'Expiry (manual): ' + (element('expiry-time').value || 'Unknown'),
       'Payout (manual): ' + element('payout').value + '%',
       'Detected candles: ' + result.candles.length + ' · used: ' + result.closed.length,
-      'Observed momentum: ' + result.direction,
+      'Next-candle forecast: UNKNOWN (unverified)',
+      'Recent trend from the last 5 analyzed candles: ' + result.direction,
       'Rule-based result: ' + result.reason,
       ...result.observations,
       element('timing-result').textContent,

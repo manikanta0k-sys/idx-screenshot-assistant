@@ -393,6 +393,15 @@ summary {
 .direction.wait {
   color:#a9bcd6;
 }
+.trend.up {
+  color:var(--green);
+}
+.trend.down {
+  color:var(--red);
+}
+.trend.wait {
+  color:#a9bcd6;
+}
 .next-status {
   display:flex;
   flex-direction:column;
@@ -793,7 +802,7 @@ footer {
     font-size:12px;
   }
   .direction {
-    font-size:40px;
+    font-size:clamp(26px,8vw,40px);
   }
   .metrics span {
     font-size:9px;
