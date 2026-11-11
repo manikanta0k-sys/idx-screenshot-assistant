@@ -508,6 +508,19 @@ summary {
   grid-template-columns:1fr 1fr;
   gap:15px;
 }
+.time-reader-controls {
+  margin-bottom:16px;
+}
+.time-reader-controls p {
+  margin:4px 0 0;
+}
+.field-source {
+  display:block;
+  margin-top:5px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.7;
+}
 .field-grid label {
   font-size:11px;
   color:var(--muted);

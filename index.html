@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b1018">
   <meta name="description" content="Crypto IDX screenshot candle analysis and an English chart guide for demo practice.">
   <title>IDX Lens · Screenshot Assistant</title>
-  <link rel="stylesheet" href="./styles.css?v=1.2">
+  <link rel="stylesheet" href="./styles.css?v=1.3">
 </head>
 <body>
   <header class="topbar">
@@ -62,12 +62,13 @@
           </div>
         </section>
         <section class="panel timing-panel" aria-labelledby="timing-title">
-          <div class="panel-heading"><h2 id="timing-title">Timing & payout</h2><span class="small muted">Manual inputs</span></div>
+          <div class="panel-heading"><h2 id="timing-title">Timing & payout</h2><span class="small muted">Screenshot time · editable</span></div>
+          <div class="time-reader-controls"><button id="read-screenshot-time" class="text-button" type="button" disabled>Read time from screenshot</button><p id="time-read-status" class="small muted" role="status" aria-live="polite">Upload a full Binomo mobile screenshot with the chart clock and expiry box visible.</p></div>
           <div class="field-grid">
             <label>Candle timeframe<select id="timeframe"><option value="1m">1 minute</option><option value="3m">3 minutes</option><option value="5m">5 minutes</option></select></label>
             <label>Payout %<input type="number" id="payout" min="1" max="100" value="84" inputmode="decimal"></label>
-            <label>Chart time in screenshot<input type="time" id="capture-time" step="1" aria-label="Chart time in screenshot"></label>
-            <label>Selected expiry<input type="time" id="expiry-time" step="1" aria-label="Selected expiry"></label>
+            <label>Chart time in screenshot<input type="time" id="capture-time" step="1" aria-label="Chart time in screenshot"><small class="field-source" id="capture-time-source">Awaiting screenshot</small></label>
+            <label>Selected expiry<input type="time" id="expiry-time" step="1" aria-label="Selected expiry"><small class="field-source" id="expiry-time-source">Awaiting screenshot</small></label>
           </div>
           <p id="timing-result" class="timing-result">Enter the screenshot's chart time and selected expiry to calculate the time remaining at capture.</p>
           <div class="payout-row"><span>₹100 demo stake</span><span>Win <b id="win-profit">+₹84</b></span><span>Loss <b class="loss">−₹100</b></span></div>
@@ -85,9 +86,10 @@
       <p id="share-status" class="small muted" role="status"></p>
       <a id="open-chatgpt" class="chatgpt-link" href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer" hidden>Open ChatGPT ↗</a>
     </section>
-    <footer><span>IDX Lens · v1.2</span><span>Screenshot analysis · Demo practice</span></footer>
+    <footer><span>IDX Lens · v1.3</span><span>Screenshot analysis · Demo practice</span></footer>
   </main>
-  <script src="./analysis.js?v=1.2"></script>
-  <script src="./app.js?v=1.2"></script>
+  <script src="./analysis.js?v=1.3"></script>
+  <script src="./time-reader.js?v=1.3"></script>
+  <script src="./app.js?v=1.3"></script>
 </body>
 </html>

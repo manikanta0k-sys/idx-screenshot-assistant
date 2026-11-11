@@ -3,6 +3,11 @@
   'use strict';
   const element = id => document.getElementById(id);
   const state = { image: null, file: null, candles: [], analysis: null, demo: false, crop: null, loadVersion: 0 };
+  const timeFields = ['capture-time', 'expiry-time'];
+  const timeRevisions = { 'capture-time': 0, 'expiry-time': 0 };
+  const timeSources = { 'capture-time': 'Unknown', 'expiry-time': 'Unknown' };
+  let timeReadVersion = 0;
+  let timeReading = false;
   const preview = element('preview');
   const previewContext = preview.getContext('2d');
   const source = document.createElement('canvas');
@@ -41,7 +46,6 @@
 
   async function loadFile(file) {
     if (!file) return;
-    const version = ++state.loadVersion;
     if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
       notice('Choose a PNG, JPG, or WEBP screenshot. Convert HEIC photos to PNG or JPG first.');
       element('file-input').value = '';
@@ -52,6 +56,10 @@
       element('file-input').value = '';
       return;
     }
+    const version = ++state.loadVersion;
+    ++timeReadVersion;
+    timeReading = false;
+    element('read-screenshot-time').disabled = true;
     notice('');
     element('analysis-state').textContent = 'Reading image…';
     const objectUrl = URL.createObjectURL(file);
@@ -76,10 +84,15 @@
       element('image-area').hidden = false;
       element('dropzone').hidden = true;
       setCropDefaults();
+      readScreenshotTime();
     } catch (error) {
       if (version !== state.loadVersion) return;
       notice('Unable to read this image. Choose another PNG or JPG screenshot.');
       element('analysis-state').textContent = state.analysis ? 'Previous image result' : 'Ready for upload';
+      element('read-screenshot-time').disabled = !state.image || state.demo;
+      element('time-read-status').textContent = state.image && !state.demo
+        ? 'Previous image retained. Retry reading its time or choose another screenshot.'
+        : 'Upload a full Binomo mobile screenshot with the chart clock and expiry box visible.';
     } finally {
       URL.revokeObjectURL(objectUrl);
       element('file-input').value = '';
@@ -87,6 +100,17 @@
   }
 
   function resetImageFields() {
+    ++timeReadVersion;
+    timeReading = false;
+    for (const id of timeFields) {
+      ++timeRevisions[id];
+      timeSources[id] = 'Unknown';
+      element(id + '-source').textContent = 'Awaiting screenshot';
+    }
+    element('read-screenshot-time').disabled = !state.image || state.demo;
+    element('time-read-status').textContent = state.demo
+      ? 'Demo image. Enter chart time and expiry manually.'
+      : 'Upload a full Binomo mobile screenshot with the chart clock and expiry box visible.';
     element('capture-time').value = '';
     element('expiry-time').value = '';
     element('exclude-last').checked = true;
@@ -95,6 +119,51 @@
     element('guide-messages').replaceChildren();
     appendMessage('Ask about this image’s direction, candles, expiry, or payout.', 'guide');
     updateTiming();
+  }
+
+  async function readScreenshotTime() {
+    if (!state.image || state.demo || timeReading) return;
+    const version = ++timeReadVersion;
+    const imageVersion = state.loadVersion;
+    const revisions = { ...timeRevisions };
+    const current = () => version === timeReadVersion && imageVersion === state.loadVersion;
+    timeReading = true;
+    element('read-screenshot-time').disabled = true;
+    element('time-read-status').textContent = 'Preparing screenshot time reading…';
+    try {
+      const result = await IdxTimeReader.read(source, {
+        isCurrent: current,
+        onProgress: message => {
+          if (current()) element('time-read-status').textContent = message;
+        }
+      });
+      if (!current() || !result) return;
+      const values = { 'capture-time': result.capture, 'expiry-time': result.expiry };
+      let filled = 0;
+      for (const id of timeFields) {
+        if (values[id] && timeRevisions[id] === revisions[id]) {
+          element(id).value = values[id];
+          timeSources[id] = 'Screenshot OCR (review)';
+          element(id + '-source').textContent = 'Read from screenshot · review';
+          filled++;
+        } else if (!element(id).value) {
+          element(id + '-source').textContent = 'Time not found · enter manually';
+        }
+      }
+      if (filled === 2) element('time-read-status').textContent = 'Chart time and expiry filled from the screenshot. Check both values against the image.';
+      else if (filled === 1) element('time-read-status').textContent = 'One time filled from the screenshot. Review the other field or enter it manually.';
+      else if (result.capture || result.expiry) element('time-read-status').textContent = 'Time reading complete. Your manual edits were kept.';
+      else element('time-read-status').textContent = 'Clock and expiry were not found. Use a full Binomo mobile screenshot or enter the times manually.';
+      updateTiming();
+    } catch (error) {
+      if (!current()) return;
+      element('time-read-status').textContent = 'Time reading is unavailable. Check your internet connection and retry, or enter the times manually.';
+    } finally {
+      if (current()) {
+        timeReading = false;
+        element('read-screenshot-time').disabled = false;
+      }
+    }
   }
 
   function analyze() {
@@ -234,13 +303,13 @@
     if (!result) return '';
     const question = element('guide-question').value.trim();
     return [
-      'Crypto IDX screenshot review · IDX Lens v1.2',
+      'Crypto IDX screenshot review · IDX Lens v1.3',
       state.demo ? 'SOURCE: Synthetic demo image' : 'SOURCE: User screenshot · Binomo Crypto IDX label selected by user; platform and asset not verified automatically',
       'Created at: ' + new Date().toISOString() + ' (report generation time, not screenshot capture time)',
       'Image: ' + (state.file ? state.file.name : 'Synthetic demo'),
       'Timeframe (manual): ' + element('timeframe').value,
-      'Chart time (manual): ' + (element('capture-time').value || 'Unknown'),
-      'Expiry (manual): ' + (element('expiry-time').value || 'Unknown'),
+      'Chart time (' + timeSources['capture-time'] + '): ' + (element('capture-time').value || 'Unknown'),
+      'Expiry (' + timeSources['expiry-time'] + '): ' + (element('expiry-time').value || 'Unknown'),
       'Payout (manual): ' + element('payout').value + '%',
       'Detected candles: ' + result.candles.length + ' · used: ' + result.closed.length,
       'Next-candle forecast: UNKNOWN (unverified)',
@@ -365,7 +434,14 @@
     loadFile(event.dataTransfer.files[0]);
   });
   for (const key of ['top', 'bottom', 'left', 'right']) element('crop-' + key).addEventListener('input', () => updateCrop(key));
-  for (const id of ['capture-time', 'expiry-time', 'payout', 'timeframe']) element(id).addEventListener('input', updateTiming);
+  for (const id of timeFields) element(id).addEventListener('input', () => {
+    ++timeRevisions[id];
+    timeSources[id] = element(id).value ? 'Manual entry' : 'Unknown';
+    element(id + '-source').textContent = element(id).value ? 'Manual entry' : 'Enter time or read the screenshot';
+    updateTiming();
+  });
+  for (const id of ['payout', 'timeframe']) element(id).addEventListener('input', updateTiming);
+  element('read-screenshot-time').addEventListener('click', readScreenshotTime);
   element('exclude-last').addEventListener('change', analyze);
   element('reset-crop').addEventListener('click', setCropDefaults);
   element('try-demo').addEventListener('click', tryDemo);
